@@ -1,4 +1,4 @@
-from data_loader import DemandLoader, CapacityLoader, TranstimeLoader, DowntimeLoader
+from data_loader import DemandLoader, CapacityLoader, TranstimeLoader, DowntimeLoader, StateLoader
 from pathlib import Path
 
 # Example usage for loading demand data
@@ -16,3 +16,7 @@ print(transtime_loader.transtime_data)
 # Example usage for loading scheduled downtime data
 downtime_loader = DowntimeLoader(file_path=Path("input/scheduled_downtime.xlsx"))
 print(downtime_loader.downtime_data)
+
+# Example usage for loading state definition data
+sate_loader = StateLoader(file_path=Path("input/state_def.xlsx"))
+print(sate_loader.state_data)

@@ -166,15 +166,6 @@ print(transtime_loader.transtime_data)
 downtime_loader = DowntimeLoader(file_path=Path("input/scheduled_downtime.xlsx"))
 print(downtime_loader.downtime_data)
 
-
 # Example usage for loading state definition data
 sate_loader = StateLoader(file_path=Path("input/state_def.xlsx"))
 print(sate_loader.state_data)
-
-# # Example usages
-# demand_loader.state_data.get('product_100', {}).get('week_29', 0)
-# capacity_loader.capacity_data.get('machine_1', {}).get('product_1', 0)
-# transtime_loader.transtime_data.get('machine_1', {}).get(('product_1', 'product_2'), 0)
-# downtime_loader.downtime_data.get('week_1', {}).get('machine_1', 0)
-
-print('hi')
