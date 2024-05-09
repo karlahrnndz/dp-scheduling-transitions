@@ -23,16 +23,49 @@ class DemandLoader:
     @staticmethod
     def load_demand_data(file_path: Path) -> dict:
         demand_data = {}
+
         if file_path.suffix.lower() == '.csv':
             demand_df = pd.read_csv(file_path)
         else:
             demand_df = pd.read_excel(file_path)
+
+        # Drop rows where demand is 0
+        demand_df = demand_df[demand_df['demand'] != 0]
+
         for _, row in demand_df.iterrows():
             product_id = row['product_id']
             week_id = row['week_id']
             demand = row['demand']
             demand_data.setdefault(product_id, {})[week_id] = demand
+
         return demand_data
+
+
+class StateLoader:
+    def __init__(self, file_path: Path):
+        validated_file_path = FileInput(file_path=file_path).file_path
+        self.state_data = self.load_state_data(validated_file_path)
+
+    @staticmethod
+    def load_state_data(file_path: Path) -> dict:
+        state_data = {}
+
+        if file_path.suffix.lower() == '.csv':
+            state_df = pd.read_csv(file_path)
+        else:
+            state_df = pd.read_excel(file_path)
+
+        for _, row in state_df.iterrows():
+            ms_id = row['ms_id']
+            product_id = row['product_id']
+            machine_id = row['machine_id']
+
+            if machine_id not in state_data:
+                state_data[machine_id] = {}
+
+            state_data[machine_id].setdefault(ms_id, set()).add(product_id)
+
+        return state_data
 
 
 class CapacityLoader:
@@ -43,10 +76,15 @@ class CapacityLoader:
     @staticmethod
     def load_capacity_data(file_path: Path) -> dict:
         capacity_data = {}
+
         if file_path.suffix.lower() == '.csv':
             capacity_df = pd.read_csv(file_path)
         else:
             capacity_df = pd.read_excel(file_path)
+
+        # Drop rows where capacity is 0
+        capacity_df = capacity_df[capacity_df['week_cap'] != 0]
+
         for _, row in capacity_df.iterrows():
             machine_id = row['machine_id']
             product_id = row['product_id']
@@ -63,23 +101,25 @@ class TranstimeLoader:
     @staticmethod
     def load_transition_times(file_path: Path) -> dict:
         transition_times = {}
+
         if file_path.suffix.lower() == '.csv':
             transition_df = pd.read_csv(file_path)
-        elif file_path.suffix.lower() == '.xlsx':
-            transition_df = pd.read_excel(file_path)
         else:
-            raise ValueError("Unsupported file format. Please provide a CSV or Excel file.")
+            transition_df = pd.read_excel(file_path)
+
+        # Drop rows where transition times are 0
+        transition_df = transition_df[transition_df['trans_time_days'] != 0]
 
         for _, row in transition_df.iterrows():
-            machine_id = row['machine_Id']
-            from_product = row['from']
-            to_product = row['to']
+            machine_id = row['machine_id']
+            from_state = row['from']
+            to_state = row['to']
             trans_time_days = row['trans_time_days']
 
             if machine_id not in transition_times:
                 transition_times[machine_id] = {}
 
-            transition_times[machine_id].setdefault((from_product, to_product), trans_time_days)
+            transition_times[machine_id].setdefault((from_state, to_state), trans_time_days)
 
         return transition_times
 
@@ -92,18 +132,20 @@ class DowntimeLoader:
     @staticmethod
     def load_downtime_data(file_path: Path) -> dict:
         downtime_data = {}
+
         if file_path.suffix.lower() == '.csv':
             downtime_df = pd.read_csv(file_path)
-        elif file_path.suffix.lower() == '.xlsx':
-            downtime_df = pd.read_excel(file_path)
         else:
-            raise ValueError("Unsupported file format. Please provide a CSV or Excel file.")
+            downtime_df = pd.read_excel(file_path)
+
+        # Drop rows where downtime is 0
+        downtime_df = downtime_df[downtime_df['downtime_days'] != 0]
 
         for _, row in downtime_df.iterrows():
-            machine_id = row['machine_Id']
+            machine_id = row['machine_id']
             week_id = row['week_id']
-
-            downtime_data.setdefault(week_id, set()).add(machine_id)
+            downtime_days = row['downtime_days']
+            downtime_data.setdefault(week_id, {})[machine_id] = downtime_days
 
         return downtime_data
 
@@ -124,10 +166,15 @@ print(transtime_loader.transtime_data)
 downtime_loader = DowntimeLoader(file_path=Path("input/scheduled_downtime.xlsx"))
 print(downtime_loader.downtime_data)
 
+
+# Example usage for loading state definition data
+sate_loader = StateLoader(file_path=Path("input/state_def.xlsx"))
+print(sate_loader.state_data)
+
 # # Example usages
-# demand_loader.demand_data.get('product_100', {}).get('week_29', 0)
+# demand_loader.state_data.get('product_100', {}).get('week_29', 0)
 # capacity_loader.capacity_data.get('machine_1', {}).get('product_1', 0)
 # transtime_loader.transtime_data.get('machine_1', {}).get(('product_1', 'product_2'), 0)
-# downtime_loader.downtime_data.get('week_1', set())
+# downtime_loader.downtime_data.get('week_1', {}).get('machine_1', 0)
 
 print('hi')
