@@ -1,22 +1,34 @@
-from data_loader import DemandLoader, CapacityLoader, TranstimeLoader, DowntimeLoader, StateLoader
-from pathlib import Path
+import numpy as np
 
-# Example usage for loading demand data
-demand_loader = DemandLoader(file_path=Path("input/demand.xlsx"))
-print(demand_loader.demand_data)
+# Construct all states
+num_states = 2 ** 10
+all_states = list(range(num_states))
+best_paths = [([state], 0) for state in all_states]
 
-# Example usage for loading capacity data
-capacity_loader = CapacityLoader(file_path=Path("input/capacity.xlsx"))
-print(capacity_loader.capacity_data)
 
-# Example usage for loading transition times data
-transtime_loader = TranstimeLoader(file_path=Path("input/transition_times.xlsx"))
-print(transtime_loader.transtime_data)
+for step in range(13):
+    best_epaths = []
 
-# Example usage for loading scheduled downtime data
-downtime_loader = DowntimeLoader(file_path=Path("input/scheduled_downtime.xlsx"))
-print(downtime_loader.downtime_data)
+    for to_state in all_states:
+        best_tload = -float('inf')
+        best_epath = None
 
-# Example usage for loading state definition data
-sate_loader = StateLoader(file_path=Path("input/state_def.xlsx"))
-print(sate_loader.state_data)
+        for from_state in all_states:
+
+            # Evaluate state transition
+            add_load = np.random.randint(40)
+            tload = best_paths[from_state][1] + add_load
+
+            # Update best tload and extended path to get to to_state
+            if tload >= best_tload:
+                best_tload = tload
+                best_epath = best_paths[from_state][0] + [to_state]
+
+        # Record best state to come from as well as best total add_load
+        best_epaths.append((best_epath, best_tload))
+
+    for to_state in all_states:
+        best_paths[to_state] = best_epaths[to_state]
+
+
+print('hi')
